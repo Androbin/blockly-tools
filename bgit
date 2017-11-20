@@ -42,7 +42,7 @@ function close {
   fi
 
   while true; do
-    read -p "This will delete the remote and local branches for $branch. Continue? (y/n):" yn
+    read -pr "This will delete the remote and local branches for $branch. Continue? (y/n):" yn
     case $yn in
       [Yy]* ) break;;
       [Nn]* ) return;;
@@ -85,7 +85,7 @@ function run_tests_android() {
 
 function run_tests() {
   if [[ $(git config --get remote.origin.url) == *"android"* ]]; then
-    run_tests_android $*
+    run_tests_android "$@"
   else
     echo "Tests not yet supported for non-Android"
   fi
@@ -108,7 +108,7 @@ function run_lint_android() {
 
 function run_lint() {
   if [[ $(git config --get remote.origin.url) == *"android"* ]]; then
-    run_lint_android $*
+    run_lint_android "$@"
   else
     echo "Lint not yet supported for non-Android"
   fi
@@ -167,28 +167,28 @@ function verify_fork() {
 
   # Check that we're in a forked repo
   # TODO: Allow user to change 'origin' and $BLOCKLY_USER to something else
-  if [ $(git remote -v | grep -i origin.*$BLOCKLY_USER | wc -l) = "0" ]; then
+  if [ $(git remote -v | grep -ci "origin.*$BLOCKLY_USER") = "0" ]; then
     echo "bgit fupdate must be run from a git project with your fork as origin."
     return 1
   fi
 
   # Check that google is the upstream repo
-  if [ $(git remote -v | grep -i upstream.*google | wc -l) = "0" ]; then
+  if [ $(git remote -v | grep -ci "upstream.*google") = "0" ]; then
     echo "google's project must be configured as upstream. Did you use 'bgit fork' to clone the repo?"
     return 1
   fi
 
   # Check that there's nothing to commit that will block checkouts
-  if [ $(git status | grep -i "working tree clean" | wc -l) = "0" ]; then
+  if [ $(git status | grep -ci "working tree clean") = "0" ]; then
     echo "You have uncommited changes. Please commit or revert your changes before updating."
     return 1
   fi
 
   #ensure there's a develop and master branch locally
-  if [ $(git branch | grep " develop$" | wc -l) = "0" ]; then
+  if [ $(git branch | grep -c " develop$") = "0" ]; then
     git branch -f develop remotes/origin/develop
   fi
-  if [ $(git branch | grep " master$" | wc -l) = "0" ]; then
+  if [ $(git branch | grep -c " master$") = "0" ]; then
     git branch -f master remotes/origin/master
   fi
 
@@ -313,16 +313,16 @@ else
   command=$1
   shift
   case $command in
-    start )   	start $@;;
-    close )   	close $@;;
-    push )    	push $@;;
-    pull )    	pull $@;;
-    rebase )  	rebase $@;;
-    test)     	run_tests $@;;
-    lint)     	run_lint $@;;
-    fclone)  	clone_fork $@;;
-    fupdate)	update_fork $@;;
-    fbranch)  	branch_fork $@;;
+    start )   	start "$@";;
+    close )   	close "$@";;
+    push )    	push "$@";;
+    pull )    	pull "$@";;
+    rebase )  	rebase "$@";;
+    test)     	run_tests "$@";;
+    lint)     	run_lint "$@";;
+    fclone)  	clone_fork "$@";;
+    fupdate)	update_fork "$@";;
+    fbranch)  	branch_fork "$@";;
     *)        	help;;
   esac
 fi
